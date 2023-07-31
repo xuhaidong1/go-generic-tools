@@ -16,6 +16,7 @@ func TestDelete(t *testing.T) {
 		args     args[T]
 		want     []T
 		wantbool bool
+		wantcap  int
 		wantErr  error
 	}
 	tests := []testCase[int]{
@@ -24,6 +25,7 @@ func TestDelete(t *testing.T) {
 			args:     args[int]{[]int{1, 2, 3, 4, 5}, 5},
 			want:     nil,
 			wantbool: false,
+			wantcap:  0,
 			wantErr:  errs.NewErrIndexOutOfRange(),
 		},
 		{
@@ -31,6 +33,7 @@ func TestDelete(t *testing.T) {
 			args:     args[int]{[]int{1, 2, 3, 4, 5}, 0},
 			want:     []int{2, 3, 4, 5},
 			wantbool: true,
+			wantcap:  5,
 			wantErr:  nil,
 		},
 		{
@@ -38,13 +41,57 @@ func TestDelete(t *testing.T) {
 			args:     args[int]{[]int{1, 2, 3, 4, 5}, 2},
 			want:     []int{1, 2, 4, 5},
 			wantbool: true,
+			wantcap:  5,
 			wantErr:  nil,
 		},
 		{
-			name:     "Remove first",
+			name:     "Remove last",
 			args:     args[int]{[]int{1, 2, 3, 4, 5}, 4},
 			want:     []int{1, 2, 3, 4},
 			wantbool: true,
+			wantcap:  5,
+			wantErr:  nil,
+		},
+		{
+			name: "Remove mid and Shrink(cap<64)",
+			args: args[int]{
+				s: func() []int {
+					res := make([]int, 0, 60)
+					return append(res, []int{1, 2, 3, 4, 5}...)
+				}(),
+				idx: 4,
+			},
+			want:     []int{1, 2, 3, 4},
+			wantbool: true,
+			wantcap:  60,
+			wantErr:  nil,
+		},
+		{
+			name: "Remove mid and Shrink(cap>256)",
+			args: args[int]{
+				s: func() []int {
+					res := make([]int, 0, 400)
+					return append(res, []int{1, 2, 3, 4, 5}...)
+				}(),
+				idx: 4,
+			},
+			want:     []int{1, 2, 3, 4},
+			wantbool: true,
+			wantcap:  300,
+			wantErr:  nil,
+		},
+		{
+			name: "Remove mid and Shrink(cap>64&&cap<256)",
+			args: args[int]{
+				s: func() []int {
+					res := make([]int, 0, 200)
+					return append(res, []int{1, 2, 3, 4, 5}...)
+				}(),
+				idx: 4,
+			},
+			want:     []int{1, 2, 3, 4},
+			wantbool: true,
+			wantcap:  100,
 			wantErr:  nil,
 		},
 	}
@@ -52,6 +99,7 @@ func TestDelete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, gotbool, err := Delete(tt.args.s, tt.args.idx)
 			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantcap, cap(got))
 			assert.Equal(t, tt.wantbool, gotbool)
 			assert.Equal(t, tt.wantErr, err)
 		})

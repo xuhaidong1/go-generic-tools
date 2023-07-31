@@ -20,7 +20,7 @@ func Delete[T any](s []T, idx int) ([]T, bool, error) {
 			j++
 		}
 	}
-	return s[:length-1], true, nil
+	return Shrink(s[:length-1]), true, nil
 }
 
 //func ExampleDelete() {
