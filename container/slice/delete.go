@@ -9,6 +9,9 @@ import (
 // 返回true删除成功 false删除失败
 
 func Delete[T any](s []T, idx int) ([]T, bool, error) {
+	if s == nil {
+		return nil, false, errs.NewErrInputNil()
+	}
 	length := len(s)
 	if idx >= length || idx < 0 {
 		return nil, false, errs.NewErrIndexOutOfRange()

@@ -21,6 +21,14 @@ func TestDelete(t *testing.T) {
 	}
 	tests := []testCase[int]{
 		{
+			name:     "Input nil",
+			args:     args[int]{nil, 0},
+			want:     nil,
+			wantbool: false,
+			wantcap:  0,
+			wantErr:  errs.NewErrInputNil(),
+		},
+		{
 			name:     "IndexOutofRange",
 			args:     args[int]{[]int{1, 2, 3, 4, 5}, 5},
 			want:     nil,
