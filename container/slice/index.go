@@ -8,7 +8,7 @@ func Index[T comparable](src []T, target T) int {
 }
 
 // IndexFunc 用户传入比较逻辑 func(src,dst T)bool
-func IndexFunc[T any](src []T, target T, f func(src, dst T) bool) int {
+func IndexFunc[T any](src []T, target T, f equalFunc[T]) int {
 	if src == nil {
 		return -1
 	}
@@ -28,7 +28,7 @@ func IndexAll[T comparable](src []T, target T) []int {
 }
 
 // IndexAllFunc 用户传入比较逻辑 func(src,dst T)bool
-func IndexAllFunc[T any](src []T, target T, f func(src, dst T) bool) []int {
+func IndexAllFunc[T any](src []T, target T, f equalFunc[T]) []int {
 	res := make([]int, 0, len(src))
 	if src == nil {
 		return res
