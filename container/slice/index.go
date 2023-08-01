@@ -1,5 +1,6 @@
 package slice
 
+// Index 返回第一个匹配的元素的下标
 func Index[T comparable](src []T, target T) int {
 	return IndexFunc[T](src, target, func(src, dst T) bool {
 		return src == dst
@@ -19,6 +20,7 @@ func IndexFunc[T any](src []T, target T, f func(src, dst T) bool) int {
 	return -1
 }
 
+// IndexAll 返回所有匹配元素的下标
 func IndexAll[T comparable](src []T, target T) []int {
 	return IndexAllFunc[T](src, target, func(src, dst T) bool {
 		return src == dst

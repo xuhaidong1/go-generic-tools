@@ -7,7 +7,6 @@ import (
 // Delete 删除切片指定位置的元素
 // 如果下标不是合法的下标，返回 ErrIndexOutOfRange
 // 返回true删除成功 false删除失败
-
 func Delete[T any](s []T, idx int) ([]T, bool, error) {
 	if s == nil {
 		return nil, false, errs.NewErrInputNil()
