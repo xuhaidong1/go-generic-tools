@@ -3,10 +3,9 @@ package queue
 import (
 	"context"
 	"sync"
-	"sync/atomic"
-	"unsafe"
 )
 
+// ConcurrentBlockingQueueRingBuffer 基于切片的并发阻塞队列，使用支持timeout的cond来实现信号的广播，不保证FIFO唤醒等待者
 type ConcurrentBlockingQueue[T any] struct {
 	data     []T
 	maxSize  int
@@ -37,6 +36,7 @@ func (c *ConcurrentBlockingQueue[T]) Enqueue(ctx context.Context, data T) error 
 		//基于【广播信号cond】的方法
 		err := c.notFull.WaitWithTimeout(ctx)
 		if err != nil {
+			c.mutex.Unlock()
 			return err
 		}
 	}
@@ -56,6 +56,7 @@ func (c *ConcurrentBlockingQueue[T]) Dequeue(ctx context.Context) (T, error) {
 		//基于【超时转发信号的cond】的方法
 		err := c.notEmpty.WaitWithTimeout(ctx)
 		if err != nil {
+			c.mutex.Unlock()
 			var t T
 			return t, err
 		}
@@ -90,47 +91,4 @@ func (c *ConcurrentBlockingQueue[T]) Len() int {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	return len(c.data)
-}
-
-func NewCond(m sync.Locker) *Cond {
-	n := make(chan struct{})
-	return &Cond{
-		L: m,
-		n: unsafe.Pointer(&n),
-	}
-}
-
-// NotifyChan 返回一个用来等待下一次广播的chan,其实就是原子的读出来Newcond里面建的chan
-func (c *Cond) NotifyChan() <-chan struct{} {
-	ptr := atomic.LoadPointer(&c.n)
-	return *((*chan struct{})(ptr))
-}
-
-func (c *Cond) Broadcast() {
-	n := make(chan struct{})
-	ptrOld := atomic.SwapPointer(&c.n, unsafe.Pointer(&n))
-	//把老的chan关闭掉，关闭后的通道会立即返回零值。
-	close(*(*chan struct{})(ptrOld))
-}
-
-func (c *Cond) Wait() {
-	n := c.NotifyChan()
-	c.L.Unlock()
-	<-n
-	c.L.Lock()
-}
-
-func (c *Cond) WaitWithTimeout(ctx context.Context) error {
-	n := c.NotifyChan() //取出通道
-	c.L.Unlock()        //释放锁
-	select {
-	//通道被关闭了，收到了广播
-	case <-n:
-		c.L.Lock()
-		return nil
-	case <-ctx.Done():
-		//c.L.Lock()
-		return ctx.Err()
-	}
-
 }

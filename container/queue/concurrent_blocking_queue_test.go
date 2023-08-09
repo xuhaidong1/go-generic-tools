@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+// 并发阻塞队列测试，可测试ConcurrentBlockingQueue，ConcurrentBlockingQueueV1，
+// ConcurrentBlockingQueueRingBuffer，根据具体类型微调测试
 func TestNewConcurrentBlockingQueue_Enqueue(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -287,8 +289,8 @@ func TestConcurrentBlockingQueueInOut(t *testing.T) {
 	var inFail int32 = 0
 	var outSucc int32 = 0
 	var outFail int32 = 0
-	q := func() *ConcurrentBlockingQueueV1[int] {
-		res := NewConcurrentBlockingQueueV1[int](200)
+	q := func() *ConcurrentBlockingQueueRingBuffer[int] {
+		res := NewConcurrentBlockingQueueRingBuffer[int](200)
 		//ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		//defer cancel()
 		//for i := 0; i < 20; i++ {
