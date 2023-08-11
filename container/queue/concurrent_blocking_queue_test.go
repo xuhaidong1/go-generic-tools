@@ -340,5 +340,4 @@ func TestConcurrentBlockingQueueInOut(t *testing.T) {
 	fmt.Printf("infail: %d\n", inFail)
 	fmt.Printf("outsucc: %d\n", outSucc)
 	fmt.Printf("outfail: %d\n", outFail)
-
 }

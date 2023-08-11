@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// ConcurrentBlockingQueueRingBuffer 基于切片的并发阻塞队列，使用支持timeout的cond来实现信号的广播，不保证FIFO唤醒等待者
+// ConcurrentBlockingQueue 基于切片的并发阻塞队列，使用支持timeout的cond来实现信号的广播，不保证FIFO唤醒等待者
 type ConcurrentBlockingQueue[T any] struct {
 	data     []T
 	maxSize  int

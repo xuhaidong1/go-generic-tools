@@ -9,5 +9,5 @@ type Queue[T any] interface {
 	Dequeue(ctx context.Context) (T, error)
 	IsFull() bool
 	IsEmpty() bool
-	Len() uint64
+	Len() int
 }
