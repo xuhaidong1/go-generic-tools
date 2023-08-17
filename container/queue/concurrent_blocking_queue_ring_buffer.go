@@ -14,8 +14,8 @@ type ConcurrentBlockingQueueRingBuffer[T any] struct {
 	tail     int
 	zero     T
 	mutex    *sync.Mutex
-	notFull  *Cond
-	notEmpty *Cond
+	notFull  *CondAtomic
+	notEmpty *CondAtomic
 }
 
 func NewConcurrentBlockingQueueRingBuffer[T any](maxsize int) *ConcurrentBlockingQueueRingBuffer[T] {
@@ -25,8 +25,8 @@ func NewConcurrentBlockingQueueRingBuffer[T any](maxsize int) *ConcurrentBlockin
 		data:     make([]T, maxsize, maxsize),
 		mutex:    m,
 		maxSize:  maxsize,
-		notFull:  NewCond(m),
-		notEmpty: NewCond(m),
+		notFull:  NewCondAtomic(m),
+		notEmpty: NewCondAtomic(m),
 	}
 }
 

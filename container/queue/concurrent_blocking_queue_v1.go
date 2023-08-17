@@ -14,8 +14,8 @@ type ConcurrentBlockingQueueV1[T any] struct {
 	notEmpty *CondV1
 	//notFull  chan struct{} channel会出现信号不能按预期接收到，可能出现队列不满但排队情况
 	//notEmpty chan struct{}
-	//notFull  *sync.Cond 使用cond会一睡不醒，无法兼顾超时
-	//notEmpty *sync.Cond
+	//notFull  *sync.CondAtomic 使用cond会一睡不醒，无法兼顾超时
+	//notEmpty *sync.CondAtomic
 }
 
 func NewConcurrentBlockingQueueV1[T any](maxsize int) *ConcurrentBlockingQueueV1[T] {

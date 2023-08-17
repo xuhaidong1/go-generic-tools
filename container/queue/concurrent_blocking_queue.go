@@ -10,8 +10,8 @@ type ConcurrentBlockingQueue[T any] struct {
 	data     []T
 	maxSize  int
 	mutex    *sync.Mutex
-	notFull  *Cond
-	notEmpty *Cond
+	notFull  *CondAtomic
+	notEmpty *CondAtomic
 }
 
 func NewConcurrentBlockingQueue[T any](maxsize int) *ConcurrentBlockingQueue[T] {
@@ -20,8 +20,8 @@ func NewConcurrentBlockingQueue[T any](maxsize int) *ConcurrentBlockingQueue[T] 
 		data:     make([]T, 0, maxsize),
 		mutex:    m,
 		maxSize:  maxsize,
-		notFull:  NewCond(m),
-		notEmpty: NewCond(m),
+		notFull:  NewCondAtomic(m),
+		notEmpty: NewCondAtomic(m),
 	}
 }
 
