@@ -17,3 +17,6 @@ type Cache interface {
 	Set(ctx context.Context, key string, val any, expiration time.Duration) error
 	Delete(ctx context.Context, key string) error
 }
+
+type LoadFunc func(ctx context.Context, key string) (any, error)
+type StoreFunc func(ctx context.Context, key string, val any) error
