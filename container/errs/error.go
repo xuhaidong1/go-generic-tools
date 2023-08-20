@@ -9,3 +9,11 @@ func NewErrIndexOutOfRange() error {
 func NewErrInputNil() error {
 	return errors.New("输入为nil")
 }
+
+func NewErrFullQueue() error {
+	return errors.New("队列满")
+}
+
+func NewErrEmptyQueue() error {
+	return errors.New("队列空")
+}
