@@ -21,4 +21,5 @@
  go.work
 
  # Goland
- .idea/
+ .idea
+ .idea/*
