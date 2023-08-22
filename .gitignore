@@ -22,4 +22,4 @@
 
  # Goland
  .idea
- .idea/*
+ .idea/

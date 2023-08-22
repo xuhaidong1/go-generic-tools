@@ -49,11 +49,3 @@ func (c *ReadThroughCache) Get(ctx context.Context, key string) (any, error) {
 	return val, nil
 
 }
-
-func (c *ReadThroughCache) Set(ctx context.Context, key string, val any, expiration time.Duration) error {
-	return c.Cache.Set(ctx, key, val, expiration)
-}
-
-func (c *ReadThroughCache) Delete(ctx context.Context, key string) error {
-	return c.Cache.Delete(ctx, key)
-}

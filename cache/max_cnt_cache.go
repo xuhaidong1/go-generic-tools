@@ -41,11 +41,3 @@ func (m *MaxCntCache) Set(ctx context.Context, key string, val any, expiration t
 	}
 	return m.Cache.Set(ctx, key, val, expiration)
 }
-
-func (m *MaxCntCache) Get(ctx context.Context, key string) (any, error) {
-	return m.Cache.Get(ctx, key)
-}
-
-func (m *MaxCntCache) Delete(ctx context.Context, key string) error {
-	return m.Cache.Delete(ctx, key)
-}

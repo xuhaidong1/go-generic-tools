@@ -20,3 +20,4 @@ type Cache interface {
 
 type LoadFunc func(ctx context.Context, key string) (any, error)
 type StoreFunc func(ctx context.Context, key string, val any) error
+type BloomFilter func(ctx context.Context, key string) bool
