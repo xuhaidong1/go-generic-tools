@@ -17,11 +17,6 @@ type LocalCache struct {
 	onEvicted func(key string, val any)
 }
 
-type item struct {
-	Val      any
-	Deadline time.Time
-}
-
 func NewLocalCache(onEvicted func(key string, val any)) *LocalCache {
 	ticker := time.NewTicker(time.Second)
 	ch := make(chan struct{})

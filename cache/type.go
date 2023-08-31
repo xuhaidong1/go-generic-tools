@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -21,3 +22,14 @@ type Cache interface {
 type LoadFunc func(ctx context.Context, key string) (any, error)
 type StoreFunc func(ctx context.Context, key string, val any) error
 type BloomFilter func(ctx context.Context, key string) bool
+
+var (
+	ErrCacheClosed      = errors.New("缓存已经被关闭")
+	ErrCacheKeyNotExist = errors.New("key不存在")
+	ErrCacheFull        = errors.New("缓存满了")
+)
+
+type item struct {
+	Val      any
+	Deadline time.Time
+}
