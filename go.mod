@@ -3,11 +3,12 @@ module github.com/xuhaidong1/go-generic-tools
 go 1.20
 
 require (
+	github.com/ecodeclub/ekit v0.0.7
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.1.0
 	gorm.io/gorm v1.25.4
 )
 

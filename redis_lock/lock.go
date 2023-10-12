@@ -3,6 +3,7 @@ package redis_lock
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/xuhaidong1/go-generic-tools/redis_lock/errs"
@@ -19,6 +20,7 @@ var (
 	luaRefresh string
 )
 
+// RetryStrategy 加锁重试策略 next返回的是要过多久进行下一次抢锁，bool为false是不抢锁了
 type RetryStrategy interface {
 	Next() (time.Duration, bool)
 }
@@ -36,6 +38,8 @@ type Lock struct {
 	unlockOnce sync.Once
 }
 
+// Lock 加锁重试，可以注入重试策略
+// timeout：抢锁的超时时间
 func (c *Client) Lock(ctx context.Context, key string, expiration time.Duration, timeout time.Duration, retry RetryStrategy) (*Lock, error) {
 	val := uuid.New().String()
 	if ctx.Err() != nil {
@@ -54,13 +58,19 @@ func (c *Client) Lock(ctx context.Context, key string, expiration time.Duration,
 				unlock:     make(chan struct{}, 1),
 			}, nil
 		}
+		//有err但不是超时
 		if err != nil && err != context.DeadlineExceeded {
 			return nil, err
 		}
 		//超时 或者锁被别人拿着了
 		interval, ok := retry.Next()
 		if !ok {
-			return nil, errs.NewErrFailedToPreemptLock()
+			if err != nil {
+				err = fmt.Errorf("最后一次重试错误:%w", err)
+			} else {
+				err = fmt.Errorf("锁被人持有:%w", errs.NewErrFailedToPreemptLock())
+			}
+			return nil, fmt.Errorf("重试机会耗尽,%w", err)
 		}
 		select {
 		case <-ctx.Done():
