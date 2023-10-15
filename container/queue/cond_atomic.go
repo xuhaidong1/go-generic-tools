@@ -28,6 +28,7 @@ func (c *CondAtomic) NotifyChan() <-chan struct{} {
 	return *((*chan struct{})(ptr))
 }
 
+// Broadcast 需要持有锁才能调用
 func (c *CondAtomic) Broadcast() {
 	n := make(chan struct{})
 	ptrOld := atomic.SwapPointer(&c.n, unsafe.Pointer(&n))

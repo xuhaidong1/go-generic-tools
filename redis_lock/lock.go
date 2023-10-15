@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/xuhaidong1/go-generic-tools/redis_lock/errs"
 	"sync"
@@ -27,6 +26,23 @@ type RetryStrategy interface {
 
 type Client struct {
 	client redis.Cmdable
+	retry  RetryStrategy
+}
+
+func NewClient(client redis.Cmdable, opts ...Options) *Client {
+	c := &Client{client: client}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
+}
+
+type Options func(c *Client)
+
+func WithRetryStrategy(r RetryStrategy) Options {
+	return func(c *Client) {
+		c.retry = r
+	}
 }
 
 type Lock struct {
@@ -40,8 +56,7 @@ type Lock struct {
 
 // Lock 加锁重试，可以注入重试策略
 // timeout：抢锁的超时时间
-func (c *Client) Lock(ctx context.Context, key string, expiration time.Duration, timeout time.Duration, retry RetryStrategy) (*Lock, error) {
-	val := uuid.New().String()
+func (c *Client) Lock(ctx context.Context, key, val string, expiration, timeout time.Duration) (*Lock, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -62,8 +77,12 @@ func (c *Client) Lock(ctx context.Context, key string, expiration time.Duration,
 		if err != nil && err != context.DeadlineExceeded {
 			return nil, err
 		}
+		//没有重试策略就直接返回错误
+		if c.retry == nil {
+			return nil, err
+		}
+		interval, ok := c.retry.Next()
 		//超时 或者锁被别人拿着了
-		interval, ok := retry.Next()
 		if !ok {
 			if err != nil {
 				err = fmt.Errorf("最后一次重试错误:%w", err)
@@ -76,28 +95,26 @@ func (c *Client) Lock(ctx context.Context, key string, expiration time.Duration,
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-time.After(interval):
-
 		}
 	}
 
 }
 
-func (c *Client) TryLock(ctx context.Context, key string, expiration time.Duration) (*Lock, error) {
-	val := uuid.New().String()
-	ok, err := c.client.SetNX(ctx, key, val, expiration).Result()
+func (c *Client) TryLock(ctx context.Context, key, val string, expiration time.Duration) (*Lock, error) {
+	res, err := c.client.Eval(ctx, luaLock, []string{key}, val, expiration.Seconds()).Result()
 	if err != nil {
-		return nil, err
-	}
-	if !ok {
 		return nil, errs.NewErrFailedToPreemptLock()
 	}
-	return &Lock{
-		client:     c.client,
-		key:        key,
-		value:      val,
-		expiration: expiration,
-		unlock:     make(chan struct{}, 1),
-	}, nil
+	if res == "OK" {
+		return &Lock{
+			client:     c.client,
+			key:        key,
+			value:      val,
+			expiration: expiration,
+			unlock:     make(chan struct{}, 1),
+		}, nil
+	}
+	return nil, errs.NewErrLockNotHold()
 }
 
 func (l *Lock) Unlock(ctx context.Context) error {
@@ -117,9 +134,6 @@ func (l *Lock) Unlock(ctx context.Context) error {
 
 func (l *Lock) Refresh(ctx context.Context) error {
 	res, err := l.client.Eval(ctx, luaRefresh, []string{l.key}, l.value, l.expiration.Seconds()).Int64()
-	//if err == redis.Nil {
-	//	return errs.NewErrLockNotHold()
-	//}
 	if err != nil {
 		return err
 	}
