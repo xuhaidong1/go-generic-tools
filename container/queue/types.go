@@ -2,6 +2,7 @@ package queue
 
 import (
 	"context"
+	"errors"
 )
 
 type Queue[T any] interface {
@@ -11,3 +12,5 @@ type Queue[T any] interface {
 	IsEmpty() bool
 	Len() int
 }
+
+var ErrQueueEmpty = errors.New("队列空")
