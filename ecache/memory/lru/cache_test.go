@@ -23,11 +23,11 @@ import (
 
 	"github.com/ecodeclub/ekit/set"
 
-	"github.com/ecodeclub/ecache"
 	"github.com/ecodeclub/ekit/list"
 	"github.com/hashicorp/golang-lru/v2/simplelru"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xuhaidong1/go-generic-tools/ecache"
 	"github.com/xuhaidong1/go-generic-tools/ecache/internal/errs"
 )
 

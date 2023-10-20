@@ -11,8 +11,8 @@ import (
 
 	"github.com/ecodeclub/ekit/list"
 
-	"github.com/ecodeclub/ecache"
 	"github.com/hashicorp/golang-lru/v2/simplelru"
+	"github.com/xuhaidong1/go-generic-tools/ecache"
 	"github.com/xuhaidong1/go-generic-tools/ecache/internal/errs"
 )
 
