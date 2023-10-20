@@ -318,7 +318,7 @@ func (s *ClientE2ESuite) TestTryLock() {
 				require.NoError(t, err)
 				require.Equal(t, int64(1), res)
 			},
-			wantErr: errs.NewErrFailedToPreemptLock(),
+			wantErr: errs.ErrFailedToPreemptLock,
 		},
 	}
 
@@ -528,11 +528,11 @@ func (m *LockManager) Apply(ctx context.Context) (*Lock, error) {
 		select {
 		case <-ticker.C:
 			l, err := m.lockClient.TryLock(ctx, m.lockKey, m.podName, m.expiration)
-			if err != nil && !errors.Is(err, errs.NewErrLockNotHold()) {
+			if err != nil && !errors.Is(err, errs.ErrLockNotHold) {
 				log.Printf("%v抢生产者失败\n", m.podName)
 				return nil, err
 			}
-			if errors.Is(err, errs.NewErrLockNotHold()) {
+			if errors.Is(err, errs.ErrLockNotHold) {
 				log.Printf("%v没抢到生产者\n", m.podName)
 				continue
 			}

@@ -3,7 +3,6 @@ module github.com/xuhaidong1/go-generic-tools
 go 1.20
 
 require (
-	github.com/ecodeclub/ecache v0.0.0-20231013135934-10ff4bc65420
 	github.com/ecodeclub/ekit v0.0.8-0.20230925161647-c5bfbd460261
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7

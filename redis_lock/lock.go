@@ -87,7 +87,7 @@ func (c *Client) Lock(ctx context.Context, key, val string, expiration, timeout 
 			if err != nil {
 				err = fmt.Errorf("最后一次重试错误:%w", err)
 			} else {
-				err = fmt.Errorf("锁被人持有:%w", errs.NewErrFailedToPreemptLock())
+				err = fmt.Errorf("锁被人持有:%w", errs.ErrFailedToPreemptLock)
 			}
 			return nil, fmt.Errorf("重试机会耗尽,%w", err)
 		}
@@ -103,7 +103,7 @@ func (c *Client) Lock(ctx context.Context, key, val string, expiration, timeout 
 func (c *Client) TryLock(ctx context.Context, key, val string, expiration time.Duration) (*Lock, error) {
 	res, err := c.client.Eval(ctx, luaLock, []string{key}, val, expiration.Seconds()).Result()
 	if err != nil {
-		return nil, errs.NewErrFailedToPreemptLock()
+		return nil, errs.ErrFailedToPreemptLock
 	}
 	if res == "OK" {
 		return &Lock{
@@ -114,7 +114,7 @@ func (c *Client) TryLock(ctx context.Context, key, val string, expiration time.D
 			unlock:     make(chan struct{}, 1),
 		}, nil
 	}
-	return nil, errs.NewErrLockNotHold()
+	return nil, errs.ErrFailedToPreemptLock
 }
 
 func (l *Lock) Unlock(ctx context.Context) error {
@@ -127,7 +127,7 @@ func (l *Lock) Unlock(ctx context.Context) error {
 		return err
 	}
 	if res != 1 {
-		return errs.NewErrLockNotHold()
+		return errs.ErrLockNotHold
 	}
 	return nil
 }
@@ -138,7 +138,7 @@ func (l *Lock) Refresh(ctx context.Context) error {
 		return err
 	}
 	if res != 1 {
-		return errs.NewErrLockNotHold()
+		return errs.ErrLockNotHold
 	}
 	return nil
 }
