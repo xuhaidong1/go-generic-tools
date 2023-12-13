@@ -28,10 +28,12 @@ func (h *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 		msgs := make([]*sarama.ConsumerMessage, 0, h.batchSize)
 		ts := make([]T, 0, h.batchSize)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		for i := 0; i < h.batchSize; i++ {
+		done := false
+		for i := 0; i < h.batchSize && !done; i++ {
 			select {
 			case <-ctx.Done():
-			//这一批超时，不需要尝试凑够一批了
+				//这一批超时，不需要尝试凑够一批了
+				done = true
 			case msg, ok := <-msgCh:
 				if !ok {
 					cancel()
