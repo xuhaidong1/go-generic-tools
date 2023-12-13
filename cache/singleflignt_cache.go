@@ -8,8 +8,8 @@ import (
 	"log"
 )
 
-// SingleFlightCache 采用singleflight调用去访问数据库，解决缓存击穿的问题
-// 保证相同的key只有一个goutine会实际查询数据库，调用完成forget一下让其它等待的goroutine不等了
+// SingleFlightCache 采用singleFlight调用去访问数据库，解决缓存击穿的问题
+// 保证相同的key只有一个goroutine会实际查询数据库，调用完成forget一下让其它等待的goroutine不等了
 type SingleFlightCache struct {
 	ReadThroughCache
 	g *singleflight.Group
@@ -24,7 +24,7 @@ func (c *SingleFlightCache) Get(ctx context.Context, key string) (any, error) {
 	}
 	if err == errs.NewErrKeyNotFound(key) {
 		defer c.g.Forget(key)
-		//采用singleflight调用去访问数据库，保证相同的key只有一个goutine会实际查询数据库，调用完成forget一下让其它等待的goroutine不等了
+		//采用singleFlight调用去访问数据库，保证相同的key只有一个goroutine会实际查询数据库，调用完成forget一下让其它等待的goroutine不等了
 		val, err, _ = c.g.Do(key, func() (interface{}, error) {
 			value, err := c.LoadFunc(ctx, key)
 			if err != nil {
