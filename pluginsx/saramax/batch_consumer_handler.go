@@ -41,7 +41,7 @@ func (h *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				}
 				msgs = append(msgs, msg)
 				var t T
-				err := json.Unmarshal(msg.Value, t)
+				err := json.Unmarshal(msg.Value, &t)
 				if err != nil {
 					h.LogError("json反序列化失败", claim, err)
 					session.MarkMessage(msg, "")
