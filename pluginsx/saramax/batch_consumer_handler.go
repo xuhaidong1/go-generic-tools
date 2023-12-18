@@ -9,16 +9,24 @@ import (
 )
 
 type BatchHandler[T any] struct {
-	l         logx.Logger
-	f         func(msg []*sarama.ConsumerMessage, t []T) error
-	batchSize int
+	l           logx.Logger
+	f           func(msg []*sarama.ConsumerMessage, t []T) error
+	setupFunc   func(session sarama.ConsumerGroupSession) error
+	cleanupFunc func(session sarama.ConsumerGroupSession) error
+	batchSize   int
 }
 
 func (h *BatchHandler[T]) Setup(session sarama.ConsumerGroupSession) error {
+	if h.setupFunc != nil {
+		return h.setupFunc(session)
+	}
 	return nil
 }
 
 func (h *BatchHandler[T]) Cleanup(session sarama.ConsumerGroupSession) error {
+	if h.cleanupFunc != nil {
+		return h.cleanupFunc(session)
+	}
 	return nil
 }
 
@@ -63,8 +71,12 @@ func (h *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	}
 }
 
-func NewBatchHandler[T any](l logx.Logger, batchSize int, f func(msg []*sarama.ConsumerMessage, t []T) error) *BatchHandler[T] {
-	return &BatchHandler[T]{l: l, f: f, batchSize: batchSize}
+func NewBatchHandler[T any](l logx.Logger, batchSize int, f func(msg []*sarama.ConsumerMessage, t []T) error, opts ...Option[T]) *BatchHandler[T] {
+	b := &BatchHandler[T]{l: l, f: f, batchSize: batchSize}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b
 }
 
 func (h *BatchHandler[T]) LogError(logMsg string, claim sarama.ConsumerGroupClaim, err error) {
@@ -72,4 +84,18 @@ func (h *BatchHandler[T]) LogError(logMsg string, claim sarama.ConsumerGroupClai
 		logx.String("topic", claim.Topic()),
 		logx.Int32("partition", claim.Partition()),
 		logx.Error(err))
+}
+
+type Option[T any] func(h *BatchHandler[T])
+
+func WithSetup[T any](f func(session sarama.ConsumerGroupSession) error) Option[T] {
+	return func(h *BatchHandler[T]) {
+		h.setupFunc = f
+	}
+}
+
+func WithCleanup[T any](f func(session sarama.ConsumerGroupSession) error) Option[T] {
+	return func(h *BatchHandler[T]) {
+		h.cleanupFunc = f
+	}
 }
